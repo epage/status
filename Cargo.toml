@@ -1,0 +1,14 @@
+[package]
+name = "alarm"
+version = "0.1.0"
+authors = ["Ed Page <epage@gmail.com>"]
+edition = "2018"
+description = "Error context for the masses"
+repository = "https://github.com/epage/alarm"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+indexmap = "1.3"
+
+[dev-dependencies]
+derive_more = "0.99"
