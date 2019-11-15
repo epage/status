@@ -3,7 +3,7 @@ use std::fmt;
 
 use crate::AlarmKind;
 
-type SourceError = dyn Error + 'static;
+type StdError = dyn Error + 'static;
 
 /// Ad hoc error context.
 ///
@@ -61,7 +61,7 @@ impl<K: AlarmKind> Alarm<K> {
     ///
     /// The root cause is the last error in the iterator produced by
     /// [`chain()`][Error::chain].
-    pub fn root_source(&self) -> Option<&SourceError> {
+    pub fn root_source(&self) -> Option<&StdError> {
         self.sources().last()
     }
 
@@ -113,7 +113,7 @@ impl<K: AlarmKind> Internal<K> {
     ///
     /// The root cause is the last error in the iterator produced by
     /// [`chain()`][Error::chain].
-    pub fn root_source(&self) -> Option<&SourceError> {
+    pub fn root_source(&self) -> Option<&StdError> {
         self.sources().last()
     }
 }
@@ -136,11 +136,11 @@ impl<K: AlarmKind> Error for Internal<K> {
 
 #[derive(Debug)]
 pub struct Chain<'a> {
-    next: Option<&'a SourceError>,
+    next: Option<&'a StdError>,
 }
 
 impl<'a> Iterator for Chain<'a> {
-    type Item = &'a SourceError;
+    type Item = &'a StdError;
 
     fn next(&mut self) -> Option<Self::Item> {
         let next = self.next.take()?;
@@ -151,20 +151,20 @@ impl<'a> Iterator for Chain<'a> {
 
 #[derive(Debug)]
 enum Source {
-    Context(Box<SourceError>),
-    Internal(Box<SourceError>),
+    Context(Box<StdError>),
+    Internal(Box<StdError>),
     Empty,
 }
 
 impl Source {
-    fn public(&self) -> Option<&SourceError> {
+    fn public(&self) -> Option<&StdError> {
         match self {
             Self::Context(e) => Some(e.as_ref()),
             _ => None,
         }
     }
 
-    fn any(&self) -> Option<&SourceError> {
+    fn any(&self) -> Option<&StdError> {
         match self {
             Self::Context(e) | Self::Internal(e) => Some(e.as_ref()),
             _ => None,
