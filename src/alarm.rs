@@ -3,6 +3,8 @@ use std::fmt;
 
 use crate::AlarmKind;
 
+type SourceError = dyn Error + 'static;
+
 /// Ad hoc error context.
 ///
 /// Goals:
@@ -47,8 +49,24 @@ impl<K: AlarmKind> Alarm<K> {
         self.0.kind
     }
 
+    /// An iterator for the chain of sources.
+    pub fn sources(&self) -> Chain {
+        Chain {
+            next: self.source(),
+        }
+    }
+
+    /// The lowest level cause of this error &mdash; this error's cause's
+    /// cause's cause etc.
+    ///
+    /// The root cause is the last error in the iterator produced by
+    /// [`chain()`][Error::chain].
+    pub fn root_source(&self) -> Option<&SourceError> {
+        self.sources().last()
+    }
+
     /// View of the error, exposing implementation details.
-    pub fn as_internal(&self) -> Internal<K> {
+    pub fn into_internal(self) -> Internal<K> {
         Internal(self)
     }
 
@@ -80,15 +98,33 @@ impl<K: AlarmKind> Error for Alarm<K> {
 
 /// View of the error, exposing implementation details.
 #[derive(Debug)]
-pub struct Internal<'a, K: AlarmKind>(&'a Alarm<K>);
+pub struct Internal<K: AlarmKind>(Alarm<K>);
 
-impl<'a, K: AlarmKind> fmt::Display for Internal<'a, K> {
+impl<K: AlarmKind> Internal<K> {
+    /// An iterator for the chain of sources.
+    pub fn sources(&self) -> Chain {
+        Chain {
+            next: self.source(),
+        }
+    }
+
+    /// The lowest level cause of this error &mdash; this error's cause's
+    /// cause's cause etc.
+    ///
+    /// The root cause is the last error in the iterator produced by
+    /// [`chain()`][Error::chain].
+    pub fn root_source(&self) -> Option<&SourceError> {
+        self.sources().last()
+    }
+}
+
+impl<K: AlarmKind> fmt::Display for Internal<K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", (self.0).0.kind)
     }
 }
 
-impl<'a, K: AlarmKind> Error for Internal<'a, K> {
+impl<K: AlarmKind> Error for Internal<K> {
     fn cause(&self) -> Option<&dyn Error> {
         (self.0).0.source.any()
     }
@@ -98,7 +134,20 @@ impl<'a, K: AlarmKind> Error for Internal<'a, K> {
     }
 }
 
-type SourceError = dyn Error + 'static;
+#[derive(Debug)]
+pub struct Chain<'a> {
+    next: Option<&'a SourceError>,
+}
+
+impl<'a> Iterator for Chain<'a> {
+    type Item = &'a SourceError;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let next = self.next.take()?;
+        self.next = next.source();
+        Some(next)
+    }
+}
 
 #[derive(Debug)]
 enum Source {
