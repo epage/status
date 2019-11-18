@@ -2,19 +2,41 @@ use std::error::Error;
 use std::fmt;
 
 use crate::AlarmKind;
-use crate::Data;
+use crate::Context;
 
 type StdError = dyn Error + 'static;
 
-/// Ad hoc error context.
+/// Ad hoc error.
 ///
 /// Goals:
 /// - Easy crate inter-op while maintaining programmatic processing.
 /// - User-friendly without losing helpful debug information.
-/// - Easily extend with context at each level of your crate
 ///
 /// Note: this is optimized for the happy-path.  When failing frequently inside of an inner loop,
-/// consider implementing `Error` on `AlarmKind`.
+/// consider implementing `Error` on your `AlarmKind`.
+///
+/// # Example
+///
+/// ```rust
+/// use alarm::AlarmKind;
+///
+/// #[derive(Copy, Clone, Debug, derive_more::Display)]
+/// enum ErrorKind {
+///   #[display(fmt = "Failed to read file")]
+///   Read,
+///   #[display(fmt = "Failed to parse")]
+///   Parse,
+/// }
+/// impl AlarmKind for ErrorKind {
+///     type Context = alarm::NoContext;
+/// }
+/// type Alarm = alarm::Alarm<ErrorKind>;
+/// type Result<T, E = Alarm> = std::result::Result<T, E>;
+///
+/// pub fn read_file() -> Result<()> {
+///     return ErrorKind::Read.into_err();
+/// }
+/// ```
 #[derive(Debug)]
 pub struct Alarm<K: AlarmKind>(Box<AlarmDetails<K>>);
 
@@ -22,7 +44,7 @@ pub struct Alarm<K: AlarmKind>(Box<AlarmDetails<K>>);
 struct AlarmDetails<K: AlarmKind> {
     kind: K,
     source: Source,
-    data: K::Data,
+    data: K::Context,
 }
 
 impl<K: AlarmKind> Alarm<K> {
@@ -35,15 +57,15 @@ impl<K: AlarmKind> Alarm<K> {
         }))
     }
 
-    /// Add in an internal error.
+    /// Add an internal error.
     pub fn with_internal<E: Error + 'static>(mut self, error: E) -> Self {
-        self.0.source = Source::Internal(Box::new(error));
+        self.0.source = Source::Private(Box::new(error));
         self
     }
 
     /// Add a public error.
-    pub fn with_context<E: Error + 'static>(mut self, error: E) -> Self {
-        self.0.source = Source::Context(Box::new(error));
+    pub fn with_source<E: Error + 'static>(mut self, error: E) -> Self {
+        self.0.source = Source::Public(Box::new(error));
         self
     }
 
@@ -69,8 +91,8 @@ impl<K: AlarmKind> Alarm<K> {
     }
 
     /// View of the error, exposing implementation details.
-    pub fn into_internal(self) -> Internal<K> {
-        Internal(self)
+    pub fn into_internal(self) -> InternalAlarm<K> {
+        InternalAlarm(self)
     }
 
     /// Convenience for returning an error.
@@ -91,7 +113,7 @@ impl<K: AlarmKind> fmt::Display for Alarm<K> {
 }
 
 impl<K: AlarmKind> std::ops::Deref for Alarm<K> {
-    type Target = K::Data;
+    type Target = K::Context;
 
     fn deref(&self) -> &Self::Target {
         &self.0.data
@@ -120,9 +142,9 @@ impl<K: AlarmKind> Error for Alarm<K> {
 
 /// View of the error, exposing implementation details.
 #[derive(Debug)]
-pub struct Internal<K: AlarmKind>(Alarm<K>);
+pub struct InternalAlarm<K: AlarmKind>(Alarm<K>);
 
-impl<K: AlarmKind> Internal<K> {
+impl<K: AlarmKind> InternalAlarm<K> {
     /// An iterator for the chain of sources.
     pub fn sources(&self) -> Chain {
         Chain {
@@ -140,13 +162,13 @@ impl<K: AlarmKind> Internal<K> {
     }
 }
 
-impl<K: AlarmKind> fmt::Display for Internal<K> {
+impl<K: AlarmKind> fmt::Display for InternalAlarm<K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.0)
     }
 }
 
-impl<K: AlarmKind> Error for Internal<K> {
+impl<K: AlarmKind> Error for InternalAlarm<K> {
     fn cause(&self) -> Option<&dyn Error> {
         (self.0).0.source.any()
     }
@@ -173,22 +195,22 @@ impl<'a> Iterator for Chain<'a> {
 
 #[derive(Debug)]
 enum Source {
-    Context(Box<StdError>),
-    Internal(Box<StdError>),
+    Public(Box<StdError>),
+    Private(Box<StdError>),
     Empty,
 }
 
 impl Source {
     fn public(&self) -> Option<&StdError> {
         match self {
-            Self::Context(e) => Some(e.as_ref()),
+            Self::Public(e) => Some(e.as_ref()),
             _ => None,
         }
     }
 
     fn any(&self) -> Option<&StdError> {
         match self {
-            Self::Context(e) | Self::Internal(e) => Some(e.as_ref()),
+            Self::Public(e) | Self::Private(e) => Some(e.as_ref()),
             _ => None,
         }
     }

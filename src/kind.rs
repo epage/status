@@ -4,6 +4,11 @@ use crate::Alarm;
 
 /// Programmatically describes which error occurred.
 ///
+/// For a given `AlarmKind`, it is expected that there is a single canonical schema for additional
+/// data to be included.
+///
+/// # Example
+///
 /// ```rust
 /// use alarm::AlarmKind;
 ///
@@ -15,7 +20,7 @@ use crate::Alarm;
 ///   Parse,
 /// }
 /// impl AlarmKind for ErrorKind {
-///     type Data = alarm::NoData;
+///     type Context = alarm::NoContext;
 /// }
 /// type Alarm = alarm::Alarm<ErrorKind>;
 /// type Result<T, E = Alarm> = std::result::Result<T, E>;
@@ -25,7 +30,7 @@ use crate::Alarm;
 /// }
 /// ```
 pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
-    type Data: crate::Data;
+    type Context: crate::Context;
 
     /// Convenience for creating an error.
     fn into_alarm(self) -> Alarm<Self> {
