@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub trait Data: Default + Clone + fmt::Display + fmt::Debug + 'static {
+pub trait Data: Default + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
     fn is_empty(&self) -> bool;
 }
 

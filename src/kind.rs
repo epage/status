@@ -24,7 +24,7 @@ use crate::Alarm;
 ///     return ErrorKind::Read.into_err();
 /// }
 /// ```
-pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + 'static {
+pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
     type Data: crate::Data;
 
     /// Convenience for creating an error.
