@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fmt;
 
 use crate::AlarmKind;
+use crate::Data;
 
 type StdError = dyn Error + 'static;
 
@@ -21,6 +22,7 @@ pub struct Alarm<K: AlarmKind>(Box<AlarmDetails<K>>);
 struct AlarmDetails<K: AlarmKind> {
     kind: K,
     source: Source,
+    data: K::Data,
 }
 
 impl<K: AlarmKind> Alarm<K> {
@@ -29,6 +31,7 @@ impl<K: AlarmKind> Alarm<K> {
         Self(Box::new(AlarmDetails {
             kind,
             source: Source::Empty,
+            data: Default::default(),
         }))
     }
 
@@ -78,7 +81,26 @@ impl<K: AlarmKind> Alarm<K> {
 
 impl<K: AlarmKind> fmt::Display for Alarm<K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0.kind)
+        writeln!(f, "{}", self.0.kind)?;
+        if !self.0.data.is_empty() {
+            writeln!(f)?;
+            writeln!(f, "{}", self.0.data)?;
+        }
+        Ok(())
+    }
+}
+
+impl<K: AlarmKind> std::ops::Deref for Alarm<K> {
+    type Target = K::Data;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0.data
+    }
+}
+
+impl<K: AlarmKind> std::ops::DerefMut for Alarm<K> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0.data
     }
 }
 
@@ -120,7 +142,7 @@ impl<K: AlarmKind> Internal<K> {
 
 impl<K: AlarmKind> fmt::Display for Internal<K> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", (self.0).0.kind)
+        writeln!(f, "{}", self.0)
     }
 }
 

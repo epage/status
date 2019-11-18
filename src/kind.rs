@@ -14,6 +14,9 @@ use crate::Alarm;
 ///   #[display(fmt = "Failed to parse")]
 ///   Parse,
 /// }
+/// impl AlarmKind for ErrorKind {
+///     type Data = alarm::NoData;
+/// }
 /// type Alarm = alarm::Alarm<ErrorKind>;
 /// type Result<T, E = Alarm> = std::result::Result<T, E>;
 ///
@@ -22,6 +25,8 @@ use crate::Alarm;
 /// }
 /// ```
 pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + 'static {
+    type Data: crate::Data;
+
     /// Convenience for creating an error.
     fn into_alarm(self) -> Alarm<Self> {
         Alarm::new(self)
@@ -32,5 +37,3 @@ pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + 'static {
         Err(Alarm::new(self))
     }
 }
-
-impl<U> AlarmKind for U where U: Copy + Clone + fmt::Display + fmt::Debug + 'static {}
