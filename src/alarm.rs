@@ -9,7 +9,7 @@ use crate::NoContext;
 
 type StdError = dyn Error + 'static;
 
-/// Ad hoc error.
+/// Error container.
 ///
 /// Goals:
 /// - Easy crate inter-op while maintaining programmatic processing.

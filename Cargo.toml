@@ -3,7 +3,7 @@ name = "alarm"
 version = "0.1.0"
 authors = ["Ed Page <epage@gmail.com>"]
 edition = "2018"
-description = "Error context for the masses"
+description = "Error container"
 repository = "https://github.com/epage/alarm"
 license = "MIT OR Apache-2.0"
 
