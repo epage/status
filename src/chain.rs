@@ -1,4 +1,4 @@
-use crate::StdError;
+type StdError = dyn std::error::Error + 'static;
 
 #[derive(Debug)]
 pub struct Chain<'a> {

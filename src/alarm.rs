@@ -7,6 +7,7 @@ use crate::Context;
 use crate::InternalAlarm;
 use crate::NoContext;
 use crate::StdError;
+use crate::StrictError;
 
 /// Error container.
 ///
@@ -59,6 +60,14 @@ impl<K: Kind, C: Context> Alarm<K, C> {
     }
 
     /// Add a public error.
+    #[cfg(feature = "send_sync")]
+    pub fn with_source<E>(mut self, error: E) -> Self
+        where E: error::Error +Send + Sync + 'static
+    {
+        self.inner.source = Source::Public(Box::new(error));
+        self
+    }
+    #[cfg(not(feature = "send_sync"))]
     pub fn with_source<E>(mut self, error: E) -> Self
         where E: error::Error + 'static
     {
@@ -67,6 +76,14 @@ impl<K: Kind, C: Context> Alarm<K, C> {
     }
 
     /// Add an internal error.
+    #[cfg(feature = "send_sync")]
+    pub fn with_internal<E>(mut self, error: E) -> Self
+        where E: error::Error +Send + Sync + 'static
+    {
+        self.inner.source = Source::Private(Box::new(error));
+        self
+    }
+    #[cfg(not(feature = "send_sync"))]
     pub fn with_internal<E>(mut self, error: E) -> Self
         where E: error::Error + 'static
     {
@@ -145,8 +162,8 @@ impl<K: Kind, C: Context> error::Error for Alarm<K, C> {
 
 #[derive(Debug)]
 pub(crate) enum Source {
-    Public(Box<StdError>),
-    Private(Box<StdError>),
+    Public(Box<StrictError>),
+    Private(Box<StrictError>),
     Empty,
 }
 
@@ -163,5 +180,25 @@ impl Source {
             Self::Public(e) | Self::Private(e) => Some(e.as_ref()),
             _ => None,
         }
+    }
+}
+
+#[cfg(feature = "send_sync")]
+mod test_send_sync {
+    use super::*;
+
+    fn is_sync<T: Sync>() {}
+    fn is_send<T: Send>() {}
+
+    #[allow(dead_code)]
+    fn source() {
+        is_send::<Source>();
+        is_sync::<Source>();
+    }
+
+    #[allow(dead_code)]
+    fn alarm() {
+        is_send::<Alarm>();
+        is_sync::<Alarm>();
     }
 }

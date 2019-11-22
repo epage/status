@@ -10,6 +10,7 @@ license = "MIT OR Apache-2.0"
 [features]
 default = ["std"]
 std = []
+send_sync = []
 
 [dependencies]
 indexmap = "1.3"

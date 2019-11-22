@@ -47,3 +47,16 @@ impl<K: Kind, C: Context> error::Error for InternalAlarm<K, C> {
     }
 }
 
+#[cfg(feature = "send_sync")]
+mod test_send_sync {
+    use super::*;
+
+    fn is_sync<T: Sync>() {}
+    fn is_send<T: Send>() {}
+
+    #[allow(dead_code)]
+    fn internal() {
+        is_send::<InternalAlarm<&'static str, crate::NoContext>>();
+        is_sync::<InternalAlarm<&'static str, crate::NoContext>>();
+    }
+}
