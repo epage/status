@@ -11,7 +11,7 @@ pub trait Context: Default + Clone + fmt::Display + fmt::Debug + Send + Sync + '
 }
 
 /// No context needed.
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct NoContext {
     __non_exhaustive: (),
 }

@@ -19,26 +19,23 @@ use crate::Alarm;
 ///   #[display(fmt = "Failed to parse")]
 ///   Parse,
 /// }
-/// impl AlarmKind for ErrorKind {
-///     type Context = alarm::NoContext;
-/// }
 /// type Alarm = alarm::Alarm<ErrorKind>;
 /// type Result<T, E = Alarm> = std::result::Result<T, E>;
 ///
-/// pub fn read_file() -> Result<()> {
+/// fn read_file() -> Result<()> {
 ///     return ErrorKind::Read.into_err();
 /// }
 /// ```
 pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
-    type Context: crate::Context;
-
     /// Convenience for creating an error.
-    fn into_alarm(self) -> Alarm<Self> {
+    fn into_alarm<C: crate::Context>(self) -> Alarm<Self, C> {
         Alarm::new(self)
     }
 
     /// Convenience for returning an error.
-    fn into_err<T>(self) -> Result<T, Alarm<Self>> {
+    fn into_err<T, C: crate::Context>(self) -> Result<T, Alarm<Self, C>> {
         Err(Alarm::new(self))
     }
 }
+
+impl<U> AlarmKind for U where U: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {}

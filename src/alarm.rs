@@ -27,27 +27,24 @@ type StdError = dyn Error + 'static;
 ///   #[display(fmt = "Failed to parse")]
 ///   Parse,
 /// }
-/// impl AlarmKind for ErrorKind {
-///     type Context = alarm::NoContext;
-/// }
 /// type Alarm = alarm::Alarm<ErrorKind>;
 /// type Result<T, E = Alarm> = std::result::Result<T, E>;
 ///
-/// pub fn read_file() -> Result<()> {
+/// fn read_file() -> Result<()> {
 ///     return ErrorKind::Read.into_err();
 /// }
 /// ```
 #[derive(Debug)]
-pub struct Alarm<K: AlarmKind>(Box<AlarmDetails<K>>);
+pub struct Alarm<K: AlarmKind = &'static str, C: Context = crate::NoContext>(Box<AlarmDetails<K, C>>);
 
 #[derive(Debug)]
-struct AlarmDetails<K: AlarmKind> {
+struct AlarmDetails<K: AlarmKind, C: Context> {
     kind: K,
     source: Source,
-    data: K::Context,
+    data: C,
 }
 
-impl<K: AlarmKind> Alarm<K> {
+impl<K: AlarmKind, C: Context> Alarm<K, C> {
     /// Create a new error object from the error kind.
     pub fn new(kind: K) -> Self {
         Self(Box::new(AlarmDetails {
@@ -91,7 +88,7 @@ impl<K: AlarmKind> Alarm<K> {
     }
 
     /// View of the error, exposing implementation details.
-    pub fn into_internal(self) -> InternalAlarm<K> {
+    pub fn into_internal(self) -> InternalAlarm<K, C> {
         InternalAlarm(self)
     }
 
@@ -101,7 +98,7 @@ impl<K: AlarmKind> Alarm<K> {
     }
 }
 
-impl<K: AlarmKind> fmt::Display for Alarm<K> {
+impl<K: AlarmKind, C: Context> fmt::Display for Alarm<K, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.0.kind)?;
         if !self.0.data.is_empty() {
@@ -112,21 +109,21 @@ impl<K: AlarmKind> fmt::Display for Alarm<K> {
     }
 }
 
-impl<K: AlarmKind> std::ops::Deref for Alarm<K> {
-    type Target = K::Context;
+impl<K: AlarmKind, C: Context> std::ops::Deref for Alarm<K, C> {
+    type Target = C;
 
     fn deref(&self) -> &Self::Target {
         &self.0.data
     }
 }
 
-impl<K: AlarmKind> std::ops::DerefMut for Alarm<K> {
+impl<K: AlarmKind, C: Context> std::ops::DerefMut for Alarm<K, C> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0.data
     }
 }
 
-impl<K: AlarmKind> Error for Alarm<K> {
+impl<K: AlarmKind, C: Context> Error for Alarm<K, C> {
     fn cause(&self) -> Option<&dyn Error> {
         self.0.source.public()
     }
@@ -142,9 +139,9 @@ impl<K: AlarmKind> Error for Alarm<K> {
 
 /// View of the error, exposing implementation details.
 #[derive(Debug)]
-pub struct InternalAlarm<K: AlarmKind>(Alarm<K>);
+pub struct InternalAlarm<K: AlarmKind, C: Context>(Alarm<K, C>);
 
-impl<K: AlarmKind> InternalAlarm<K> {
+impl<K: AlarmKind, C: Context> InternalAlarm<K, C> {
     /// An iterator for the chain of sources.
     pub fn sources(&self) -> Chain {
         Chain {
@@ -162,13 +159,13 @@ impl<K: AlarmKind> InternalAlarm<K> {
     }
 }
 
-impl<K: AlarmKind> fmt::Display for InternalAlarm<K> {
+impl<K: AlarmKind, C: Context> fmt::Display for InternalAlarm<K, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.0)
     }
 }
 
-impl<K: AlarmKind> Error for InternalAlarm<K> {
+impl<K: AlarmKind, C: Context> Error for InternalAlarm<K, C> {
     fn cause(&self) -> Option<&dyn Error> {
         (self.0).0.source.any()
     }
