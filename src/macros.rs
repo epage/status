@@ -38,10 +38,10 @@
 #[macro_export]
 macro_rules! bail {
     ($msg:literal $(,)?) => {
-        return ::core::result::Result::Err($crate::Alarm::new($msg));
+        return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($msg)));
     };
     ($err:expr $(,)?) => {
-        return ::core::result::Result::Err($crate::Alarm::new($err));
+        return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($err)));
     };
 }
 
@@ -88,12 +88,12 @@ macro_rules! bail {
 macro_rules! ensure {
     ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
-            return ::core::result::Result::Err($crate::Alarm::new($msg));
+            return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($msg)));
         }
     };
     ($cond:expr, $err:expr $(,)?) => {
         if !$cond {
-            return ::core::result::Result::Err($crate::Alarm::new($err));
+            return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($err)));
         }
     };
 }
