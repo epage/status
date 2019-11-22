@@ -1,3 +1,5 @@
+mod macros;
+
 mod alarm;
 mod context;
 mod kind;
