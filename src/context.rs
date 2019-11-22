@@ -25,3 +25,15 @@ impl Context for NoContext {
         true
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use static_assertions::*;
+
+    #[test]
+    fn no_context() {
+        assert_impl_all!(NoContext: Default, Copy, Clone, fmt::Debug, fmt::Display, Context);
+    }
+}

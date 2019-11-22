@@ -183,22 +183,23 @@ impl Source {
     }
 }
 
-#[cfg(feature = "send_sync")]
-mod test_send_sync {
+#[cfg(test)]
+mod test {
     use super::*;
 
-    fn is_sync<T: Sync>() {}
-    fn is_send<T: Send>() {}
+    use static_assertions::*;
 
-    #[allow(dead_code)]
+    #[test]
     fn source() {
-        is_send::<Source>();
-        is_sync::<Source>();
+        assert_impl_all!(Source: fmt::Debug);
+        #[cfg(feature = "send_sync")]
+        assert_impl_all!(Source: Send, Sync);
     }
 
-    #[allow(dead_code)]
+    #[test]
     fn alarm() {
-        is_send::<Alarm>();
-        is_sync::<Alarm>();
+        assert_impl_all!(Alarm: fmt::Debug, fmt::Display, error::Error);
+        #[cfg(feature = "send_sync")]
+        assert_impl_all!(Alarm: Send, Sync);
     }
 }

@@ -47,16 +47,16 @@ impl<K: Kind, C: Context> error::Error for InternalAlarm<K, C> {
     }
 }
 
-#[cfg(feature = "send_sync")]
-mod test_send_sync {
+#[cfg(test)]
+mod test {
     use super::*;
 
-    fn is_sync<T: Sync>() {}
-    fn is_send<T: Send>() {}
+    use static_assertions::*;
 
-    #[allow(dead_code)]
+    #[test]
     fn internal() {
-        is_send::<InternalAlarm<&'static str, crate::NoContext>>();
-        is_sync::<InternalAlarm<&'static str, crate::NoContext>>();
+        assert_impl_all!(InternalAlarm<&'static str, crate::NoContext>: fmt::Debug, fmt::Display, error::Error);
+        #[cfg(feature = "send_sync")]
+        assert_impl_all!(InternalAlarm<&'static str, crate::NoContext>: Send, Sync);
     }
 }

@@ -21,3 +21,14 @@ impl<'a> Iterator for Chain<'a> {
     }
 }
 
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use static_assertions::*;
+
+    #[test]
+    fn chain() {
+        assert_impl_all!(Chain: std::fmt::Debug);
+    }
+}
