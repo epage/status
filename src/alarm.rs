@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::AlarmKind;
+use crate::Kind;
 use crate::Chain;
 use crate::Context;
 use crate::InternalAlarm;
@@ -16,12 +16,12 @@ type StdError = dyn Error + 'static;
 /// - User-friendly without losing helpful debug information.
 ///
 /// Note: this is optimized for the happy-path.  When failing frequently inside of an inner loop,
-/// consider implementing `Error` on your `AlarmKind`.
+/// consider implementing `Error` on your `Kind`.
 ///
 /// # Example
 ///
 /// ```rust
-/// use alarm::AlarmKind;
+/// use alarm::Kind;
 ///
 /// #[derive(Copy, Clone, Debug, derive_more::Display)]
 /// enum ErrorKind {
@@ -38,18 +38,18 @@ type StdError = dyn Error + 'static;
 /// }
 /// ```
 #[derive(Debug)]
-pub struct Alarm<K: AlarmKind = &'static str, C: Context = NoContext> {
+pub struct Alarm<K: Kind = &'static str, C: Context = NoContext> {
     pub(crate) inner: Box<AlarmDetails<K, C>>
 }
 
 #[derive(Debug)]
-pub(crate) struct AlarmDetails<K: AlarmKind, C: Context> {
+pub(crate) struct AlarmDetails<K: Kind, C: Context> {
     pub(crate) kind: K,
     pub(crate) source: Source,
     pub(crate) data: C,
 }
 
-impl<K: AlarmKind, C: Context> Alarm<K, C> {
+impl<K: Kind, C: Context> Alarm<K, C> {
     /// Create a new error object from the error kind.
     pub fn new(kind: K) -> Self {
         Self { inner: Box::new(AlarmDetails {
@@ -101,7 +101,7 @@ impl<K: AlarmKind, C: Context> Alarm<K, C> {
     }
 }
 
-impl<K: AlarmKind, C: Context> fmt::Display for Alarm<K, C> {
+impl<K: Kind, C: Context> fmt::Display for Alarm<K, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.inner.kind)?;
         if !self.inner.data.is_empty() {
@@ -112,7 +112,7 @@ impl<K: AlarmKind, C: Context> fmt::Display for Alarm<K, C> {
     }
 }
 
-impl<K: AlarmKind, C: Context> std::ops::Deref for Alarm<K, C> {
+impl<K: Kind, C: Context> std::ops::Deref for Alarm<K, C> {
     type Target = C;
 
     fn deref(&self) -> &Self::Target {
@@ -120,13 +120,13 @@ impl<K: AlarmKind, C: Context> std::ops::Deref for Alarm<K, C> {
     }
 }
 
-impl<K: AlarmKind, C: Context> std::ops::DerefMut for Alarm<K, C> {
+impl<K: Kind, C: Context> std::ops::DerefMut for Alarm<K, C> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner.data
     }
 }
 
-impl<K: AlarmKind, C: Context> Error for Alarm<K, C> {
+impl<K: Kind, C: Context> Error for Alarm<K, C> {
     fn cause(&self) -> Option<&dyn Error> {
         self.inner.source.public()
     }
@@ -136,7 +136,7 @@ impl<K: AlarmKind, C: Context> Error for Alarm<K, C> {
     }
 }
 
-// impl From<AlarmKind> is waiting on specialization
+// impl From<Kind> is waiting on specialization
 
 // impl From<Error> is waiting on specialization
 

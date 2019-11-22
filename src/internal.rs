@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt;
 
 use crate::Alarm;
-use crate::AlarmKind;
+use crate::Kind;
 use crate::Chain;
 use crate::Context;
 
@@ -10,9 +10,9 @@ type StdError = dyn Error + 'static;
 
 /// View of the error, exposing implementation details.
 #[derive(Debug)]
-pub struct InternalAlarm<K: AlarmKind, C: Context>(Alarm<K, C>);
+pub struct InternalAlarm<K: Kind, C: Context>(Alarm<K, C>);
 
-impl<K: AlarmKind, C: Context> InternalAlarm<K, C> {
+impl<K: Kind, C: Context> InternalAlarm<K, C> {
     pub(crate) fn new(err: Alarm<K, C>) -> Self {
         Self(err)
     }
@@ -32,13 +32,13 @@ impl<K: AlarmKind, C: Context> InternalAlarm<K, C> {
     }
 }
 
-impl<K: AlarmKind, C: Context> fmt::Display for InternalAlarm<K, C> {
+impl<K: Kind, C: Context> fmt::Display for InternalAlarm<K, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.0)
     }
 }
 
-impl<K: AlarmKind, C: Context> Error for InternalAlarm<K, C> {
+impl<K: Kind, C: Context> Error for InternalAlarm<K, C> {
     fn cause(&self) -> Option<&dyn Error> {
         (self.0).inner.source.any()
     }

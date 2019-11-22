@@ -4,13 +4,13 @@ use crate::Alarm;
 
 /// Programmatically describes which error occurred.
 ///
-/// For a given `AlarmKind`, it is expected that there is a single canonical schema for additional
+/// For a given `Kind`, it is expected that there is a single canonical schema for additional
 /// data to be included.
 ///
 /// # Example
 ///
 /// ```rust
-/// use alarm::AlarmKind;
+/// use alarm::Kind;
 ///
 /// #[derive(Copy, Clone, Debug, derive_more::Display)]
 /// enum ErrorKind {
@@ -26,7 +26,7 @@ use crate::Alarm;
 ///     return ErrorKind::Read.into_err();
 /// }
 /// ```
-pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
+pub trait Kind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
     /// Convenience for creating an error.
     fn into_alarm<C: crate::Context>(self) -> Alarm<Self, C> {
         Alarm::new(self)
@@ -38,4 +38,4 @@ pub trait AlarmKind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 's
     }
 }
 
-impl<U> AlarmKind for U where U: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {}
+impl<U> Kind for U where U: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {}
