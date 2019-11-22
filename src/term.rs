@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::error;
 use std::fmt;
 
 /// For use with `main`
@@ -11,11 +11,11 @@ use std::fmt;
 ///     Ok(())
 /// }
 /// ```
-pub struct TerminatingAlarm<E: Error = crate::Alarm> {
+pub struct TerminatingAlarm<E: error::Error = crate::Alarm> {
     error: E,
 }
 
-impl<E: Error> From<E> for TerminatingAlarm<E> {
+impl<E: error::Error> From<E> for TerminatingAlarm<E> {
     fn from(error: E) -> Self {
         Self {
             error
@@ -23,7 +23,7 @@ impl<E: Error> From<E> for TerminatingAlarm<E> {
     }
 }
 
-impl<E: Error> fmt::Debug for TerminatingAlarm<E> {
+impl<E: error::Error> fmt::Debug for TerminatingAlarm<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.error)?;
         for source in crate::Chain::new(self.error.source()) {

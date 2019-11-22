@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::error;
 use std::fmt;
 
 use crate::Kind;
@@ -6,8 +6,7 @@ use crate::Chain;
 use crate::Context;
 use crate::InternalAlarm;
 use crate::NoContext;
-
-type StdError = dyn Error + 'static;
+use crate::StdError;
 
 /// Error container.
 ///
@@ -60,13 +59,17 @@ impl<K: Kind, C: Context> Alarm<K, C> {
     }
 
     /// Add a public error.
-    pub fn with_source<E: Error + 'static>(mut self, error: E) -> Self {
+    pub fn with_source<E>(mut self, error: E) -> Self
+        where E: error::Error + 'static
+    {
         self.inner.source = Source::Public(Box::new(error));
         self
     }
 
     /// Add an internal error.
-    pub fn with_internal<E: Error + 'static>(mut self, error: E) -> Self {
+    pub fn with_internal<E>(mut self, error: E) -> Self
+        where E: error::Error + 'static
+    {
         self.inner.source = Source::Private(Box::new(error));
         self
     }
@@ -78,7 +81,7 @@ impl<K: Kind, C: Context> Alarm<K, C> {
 
     /// An iterator for the chain of sources.
     pub fn sources(&self) -> Chain {
-        Chain::new(self.source())
+        Chain::new(error::Error::source(self))
     }
 
     /// The lowest level cause of this error &mdash; this error's cause's
@@ -126,12 +129,12 @@ impl<K: Kind, C: Context> std::ops::DerefMut for Alarm<K, C> {
     }
 }
 
-impl<K: Kind, C: Context> Error for Alarm<K, C> {
-    fn cause(&self) -> Option<&dyn Error> {
+impl<K: Kind, C: Context> error::Error for Alarm<K, C> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         self.inner.source.public()
     }
 
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         self.inner.source.public()
     }
 }

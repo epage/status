@@ -16,3 +16,5 @@ pub use crate::context::*;
 pub use crate::internal::*;
 pub use crate::kind::*;
 pub use crate::term::*;
+
+pub(crate) type StdError = dyn std::error::Error + 'static;

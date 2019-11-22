@@ -1,12 +1,11 @@
-use std::error::Error;
+use std::error;
 use std::fmt;
 
 use crate::Alarm;
 use crate::Kind;
 use crate::Chain;
 use crate::Context;
-
-type StdError = dyn Error + 'static;
+use crate::StdError;
 
 /// View of the error, exposing implementation details.
 #[derive(Debug)]
@@ -19,7 +18,7 @@ impl<K: Kind, C: Context> InternalAlarm<K, C> {
 
     /// An iterator for the chain of sources.
     pub fn sources(&self) -> Chain {
-        Chain::new(self.source())
+        Chain::new(error::Error::source(self))
     }
 
     /// The lowest level cause of this error &mdash; this error's cause's
@@ -38,12 +37,12 @@ impl<K: Kind, C: Context> fmt::Display for InternalAlarm<K, C> {
     }
 }
 
-impl<K: Kind, C: Context> Error for InternalAlarm<K, C> {
-    fn cause(&self) -> Option<&dyn Error> {
+impl<K: Kind, C: Context> error::Error for InternalAlarm<K, C> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         (self.0).inner.source.any()
     }
 
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         (self.0).inner.source.any()
     }
 }
