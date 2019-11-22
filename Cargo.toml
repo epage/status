@@ -7,6 +7,10 @@ description = "Error context for the masses"
 repository = "https://github.com/epage/alarm"
 license = "MIT OR Apache-2.0"
 
+[features]
+default = ["std"]
+std = []
+
 [dependencies]
 indexmap = "1.3"
 
