@@ -9,12 +9,12 @@
 /// #     true
 /// # }
 /// #
-/// # fn writer() -> Result<(), alarm::Alarm> {
+/// # fn writer() -> Result<(), status::Status> {
 /// #     let user = 0;
 /// #     let resource = 0;
 /// #
 /// if !has_permission(user, resource) {
-///     alarm::bail!("permission denied for accessing resource");
+///     status::bail!("permission denied for accessing resource");
 /// }
 /// #     Ok(())
 /// # }
@@ -28,20 +28,20 @@
 /// #   #[display(fmt = "Failed to parse")]
 /// #   Parse,
 /// # }
-/// # type Alarm = alarm::Alarm<ErrorKind>;
-/// # type Result<T, E = Alarm> = std::result::Result<T, E>;
+/// # type Status = status::Status<ErrorKind>;
+/// # type Result<T, E = Status> = std::result::Result<T, E>;
 ///
 /// fn read_file() -> Result<()> {
-///     alarm::bail!(ErrorKind::Read);
+///     status::bail!(ErrorKind::Read);
 /// }
 /// ```
 #[macro_export]
 macro_rules! bail {
     ($msg:literal $(,)?) => {
-        return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($msg)));
+        return ::core::result::Result::Err($crate::Status::new(::core::convert::From::from($msg)));
     };
     ($err:expr $(,)?) => {
-        return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($err)));
+        return ::core::result::Result::Err($crate::Status::new(::core::convert::From::from($err)));
     };
 }
 
@@ -56,10 +56,10 @@ macro_rules! bail {
 /// # Example
 ///
 /// ```
-/// # fn writer() -> Result<(), alarm::Alarm> {
+/// # fn writer() -> Result<(), status::Status> {
 /// #     let user = 0;
 /// #
-/// alarm::ensure!(user == 0, "only user 0 is allowed");
+/// status::ensure!(user == 0, "only user 0 is allowed");
 /// #     Ok(())
 /// # }
 /// ```
@@ -72,15 +72,15 @@ macro_rules! bail {
 /// #   #[display(fmt = "Failed to parse")]
 /// #   Parse,
 /// # }
-/// # type Alarm = alarm::Alarm<ErrorKind>;
-/// # type Result<T, E = Alarm> = std::result::Result<T, E>;
+/// # type Status = status::Status<ErrorKind>;
+/// # type Result<T, E = Status> = std::result::Result<T, E>;
 /// #
 /// # const MAX_DEPTH: usize = 1;
 /// #
 /// fn read_file() -> Result<()> {
 /// #     let depth = 0;
 /// #
-///     alarm::ensure!(depth <= MAX_DEPTH, ErrorKind::Read);
+///     status::ensure!(depth <= MAX_DEPTH, ErrorKind::Read);
 /// #     Ok(())
 /// }
 /// ```
@@ -88,12 +88,16 @@ macro_rules! bail {
 macro_rules! ensure {
     ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
-            return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($msg)));
+            return ::core::result::Result::Err($crate::Status::new(::core::convert::From::from(
+                $msg,
+            )));
         }
     };
     ($cond:expr, $err:expr $(,)?) => {
         if !$cond {
-            return ::core::result::Result::Err($crate::Alarm::new(::core::convert::From::from($err)));
+            return ::core::result::Result::Err($crate::Status::new(::core::convert::From::from(
+                $err,
+            )));
         }
     };
 }

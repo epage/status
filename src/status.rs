@@ -1,10 +1,10 @@
 use std::error;
 use std::fmt;
 
-use crate::Kind;
 use crate::Chain;
 use crate::Context;
-use crate::InternalAlarm;
+use crate::InternalStatus;
+use crate::Kind;
 use crate::NoContext;
 use crate::StdError;
 use crate::StrictError;
@@ -21,7 +21,7 @@ use crate::StrictError;
 /// # Example
 ///
 /// ```rust
-/// use alarm::Kind;
+/// use status::Kind;
 ///
 /// #[derive(Copy, Clone, Debug, derive_more::Display)]
 /// enum ErrorKind {
@@ -30,46 +30,50 @@ use crate::StrictError;
 ///   #[display(fmt = "Failed to parse")]
 ///   Parse,
 /// }
-/// type Alarm = alarm::Alarm<ErrorKind>;
-/// type Result<T, E = Alarm> = std::result::Result<T, E>;
+/// type Status = status::Status<ErrorKind>;
+/// type Result<T, E = Status> = std::result::Result<T, E>;
 ///
 /// fn read_file() -> Result<()> {
 ///     return ErrorKind::Read.into_err();
 /// }
 /// ```
 #[derive(Debug)]
-pub struct Alarm<K: Kind = &'static str, C: Context = NoContext> {
-    pub(crate) inner: Box<AlarmDetails<K, C>>
+pub struct Status<K: Kind = &'static str, C: Context = NoContext> {
+    pub(crate) inner: Box<StatusDetails<K, C>>,
 }
 
 #[derive(Debug)]
-pub(crate) struct AlarmDetails<K: Kind, C: Context> {
+pub(crate) struct StatusDetails<K: Kind, C: Context> {
     pub(crate) kind: K,
     pub(crate) source: Source,
     pub(crate) data: C,
 }
 
-impl<K: Kind, C: Context> Alarm<K, C> {
+impl<K: Kind, C: Context> Status<K, C> {
     /// Create a new error object from the error kind.
     pub fn new(kind: K) -> Self {
-        Self { inner: Box::new(AlarmDetails {
-            kind,
-            source: Source::Empty,
-            data: Default::default(),
-        })}
+        Self {
+            inner: Box::new(StatusDetails {
+                kind,
+                source: Source::Empty,
+                data: Default::default(),
+            }),
+        }
     }
 
     /// Add a public error.
     #[cfg(feature = "send_sync")]
     pub fn with_source<E>(mut self, error: E) -> Self
-        where E: error::Error +Send + Sync + 'static
+    where
+        E: error::Error + Send + Sync + 'static,
     {
         self.inner.source = Source::Public(Box::new(error));
         self
     }
     #[cfg(not(feature = "send_sync"))]
     pub fn with_source<E>(mut self, error: E) -> Self
-        where E: error::Error + 'static
+    where
+        E: error::Error + 'static,
     {
         self.inner.source = Source::Public(Box::new(error));
         self
@@ -78,14 +82,16 @@ impl<K: Kind, C: Context> Alarm<K, C> {
     /// Add an internal error.
     #[cfg(feature = "send_sync")]
     pub fn with_internal<E>(mut self, error: E) -> Self
-        where E: error::Error +Send + Sync + 'static
+    where
+        E: error::Error + Send + Sync + 'static,
     {
         self.inner.source = Source::Private(Box::new(error));
         self
     }
     #[cfg(not(feature = "send_sync"))]
     pub fn with_internal<E>(mut self, error: E) -> Self
-        where E: error::Error + 'static
+    where
+        E: error::Error + 'static,
     {
         self.inner.source = Source::Private(Box::new(error));
         self
@@ -111,8 +117,8 @@ impl<K: Kind, C: Context> Alarm<K, C> {
     }
 
     /// View of the error, exposing implementation details.
-    pub fn into_internal(self) -> InternalAlarm<K, C> {
-        InternalAlarm::new(self)
+    pub fn into_internal(self) -> InternalStatus<K, C> {
+        InternalStatus::new(self)
     }
 
     /// Convenience for returning an error.
@@ -121,7 +127,7 @@ impl<K: Kind, C: Context> Alarm<K, C> {
     }
 }
 
-impl<K: Kind, C: Context> fmt::Display for Alarm<K, C> {
+impl<K: Kind, C: Context> fmt::Display for Status<K, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.inner.kind)?;
         if !self.inner.data.is_empty() {
@@ -132,7 +138,7 @@ impl<K: Kind, C: Context> fmt::Display for Alarm<K, C> {
     }
 }
 
-impl<K: Kind, C: Context> std::ops::Deref for Alarm<K, C> {
+impl<K: Kind, C: Context> std::ops::Deref for Status<K, C> {
     type Target = C;
 
     fn deref(&self) -> &Self::Target {
@@ -140,13 +146,13 @@ impl<K: Kind, C: Context> std::ops::Deref for Alarm<K, C> {
     }
 }
 
-impl<K: Kind, C: Context> std::ops::DerefMut for Alarm<K, C> {
+impl<K: Kind, C: Context> std::ops::DerefMut for Status<K, C> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner.data
     }
 }
 
-impl<K: Kind, C: Context> error::Error for Alarm<K, C> {
+impl<K: Kind, C: Context> error::Error for Status<K, C> {
     fn cause(&self) -> Option<&dyn error::Error> {
         self.inner.source.public()
     }
@@ -197,9 +203,9 @@ mod test {
     }
 
     #[test]
-    fn alarm() {
-        assert_impl_all!(Alarm: fmt::Debug, fmt::Display, error::Error);
+    fn status() {
+        assert_impl_all!(Status: fmt::Debug, fmt::Display, error::Error);
         #[cfg(feature = "send_sync")]
-        assert_impl_all!(Alarm: Send, Sync);
+        assert_impl_all!(Status: Send, Sync);
     }
 }

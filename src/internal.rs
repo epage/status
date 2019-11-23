@@ -1,18 +1,18 @@
 use std::error;
 use std::fmt;
 
-use crate::Alarm;
-use crate::Kind;
 use crate::Chain;
 use crate::Context;
+use crate::Kind;
+use crate::Status;
 use crate::StdError;
 
 /// View of the error, exposing implementation details.
 #[derive(Debug)]
-pub struct InternalAlarm<K: Kind, C: Context>(Alarm<K, C>);
+pub struct InternalStatus<K: Kind, C: Context>(Status<K, C>);
 
-impl<K: Kind, C: Context> InternalAlarm<K, C> {
-    pub(crate) fn new(err: Alarm<K, C>) -> Self {
+impl<K: Kind, C: Context> InternalStatus<K, C> {
+    pub(crate) fn new(err: Status<K, C>) -> Self {
         Self(err)
     }
 
@@ -31,13 +31,13 @@ impl<K: Kind, C: Context> InternalAlarm<K, C> {
     }
 }
 
-impl<K: Kind, C: Context> fmt::Display for InternalAlarm<K, C> {
+impl<K: Kind, C: Context> fmt::Display for InternalStatus<K, C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.0)
     }
 }
 
-impl<K: Kind, C: Context> error::Error for InternalAlarm<K, C> {
+impl<K: Kind, C: Context> error::Error for InternalStatus<K, C> {
     fn cause(&self) -> Option<&dyn error::Error> {
         (self.0).inner.source.any()
     }
@@ -55,8 +55,8 @@ mod test {
 
     #[test]
     fn internal() {
-        assert_impl_all!(InternalAlarm<&'static str, crate::NoContext>: fmt::Debug, fmt::Display, error::Error);
+        assert_impl_all!(InternalStatus<&'static str, crate::NoContext>: fmt::Debug, fmt::Display, error::Error);
         #[cfg(feature = "send_sync")]
-        assert_impl_all!(InternalAlarm<&'static str, crate::NoContext>: Send, Sync);
+        assert_impl_all!(InternalStatus<&'static str, crate::NoContext>: Send, Sync);
     }
 }

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::Alarm;
+use crate::Status;
 
 /// Programmatically describes which error occurred.
 ///
@@ -10,7 +10,7 @@ use crate::Alarm;
 /// # Example
 ///
 /// ```rust
-/// use alarm::Kind;
+/// use status::Kind;
 ///
 /// #[derive(Copy, Clone, Debug, derive_more::Display)]
 /// enum ErrorKind {
@@ -19,8 +19,8 @@ use crate::Alarm;
 ///   #[display(fmt = "Failed to parse")]
 ///   Parse,
 /// }
-/// type Alarm = alarm::Alarm<ErrorKind>;
-/// type Result<T, E = Alarm> = std::result::Result<T, E>;
+/// type Status = status::Status<ErrorKind>;
+/// type Result<T, E = Status> = std::result::Result<T, E>;
 ///
 /// fn read_file() -> Result<()> {
 ///     return ErrorKind::Read.into_err();
@@ -28,13 +28,13 @@ use crate::Alarm;
 /// ```
 pub trait Kind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
     /// Convenience for creating an error.
-    fn into_alarm<C: crate::Context>(self) -> Alarm<Self, C> {
-        Alarm::new(self)
+    fn into_status<C: crate::Context>(self) -> Status<Self, C> {
+        Status::new(self)
     }
 
     /// Convenience for returning an error.
-    fn into_err<T, C: crate::Context>(self) -> Result<T, Alarm<Self, C>> {
-        Err(Alarm::new(self))
+    fn into_err<T, C: crate::Context>(self) -> Result<T, Status<Self, C>> {
+        Err(Status::new(self))
     }
 }
 
