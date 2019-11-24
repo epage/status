@@ -7,6 +7,7 @@ use std::fmt;
 /// - Programmatic access to the context.
 /// - User-friendly without losing helpful debug information.
 pub trait Context: Default + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {
+    /// Returns `true` is the `Context` has no content.
     fn is_empty(&self) -> bool;
 }
 
@@ -34,6 +35,13 @@ mod test {
 
     #[test]
     fn no_context() {
-        assert_impl_all!(NoContext: Default, Copy, Clone, fmt::Debug, fmt::Display, Context);
+        assert_impl_all!(
+            NoContext: Default,
+            Copy,
+            Clone,
+            fmt::Debug,
+            fmt::Display,
+            Context
+        );
     }
 }

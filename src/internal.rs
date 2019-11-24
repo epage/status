@@ -5,9 +5,24 @@ use crate::Chain;
 use crate::Context;
 use crate::Kind;
 use crate::Status;
-use crate::StdError;
 
-/// View of the error, exposing implementation details.
+/// View of [`Status`], exposing implementation details.
+///
+/// `Error::source` and [`InternalStatus::sources`] are for debug / display purposes only and
+/// relying on them programmatically is likely to break across minor releases.
+///
+/// # Example
+///
+/// ```
+/// fn display_status(status: status::Status) {
+///     if std::env::var("DEBUG").as_ref().map(|s| s.as_ref()).unwrap_or("0") == "1" {
+///         let status = status.into_internal();
+///         println!("{}", status);
+///     } else {
+///         println!("{}", status);
+///     }
+/// }
+/// ```
 #[derive(Debug)]
 pub struct InternalStatus<K: Kind, C: Context>(Status<K, C>);
 
@@ -16,18 +31,9 @@ impl<K: Kind, C: Context> InternalStatus<K, C> {
         Self(err)
     }
 
-    /// An iterator for the chain of sources.
+    /// An iterator for the chain of sources, private or public.
     pub fn sources(&self) -> Chain {
         Chain::new(error::Error::source(self))
-    }
-
-    /// The lowest level cause of this error &mdash; this error's cause's
-    /// cause's cause etc.
-    ///
-    /// The root cause is the last error in the iterator produced by
-    /// [`chain()`][Error::chain].
-    pub fn root_source(&self) -> Option<&StdError> {
-        self.sources().last()
     }
 }
 

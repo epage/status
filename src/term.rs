@@ -5,7 +5,7 @@ use std::fmt;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,should_panic
 /// fn main() -> Result<(), status::TerminatingStatus> {
 ///     Err(status::Status::new("Died"))?;
 ///     Ok(())

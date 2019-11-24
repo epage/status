@@ -2,10 +2,9 @@ use std::fmt;
 
 use crate::Status;
 
-/// Programmatically describes which error occurred.
+/// Trait alias for types that programmatically specify the status.
 ///
-/// For a given `Kind`, it is expected that there is a single canonical schema for additional
-/// data to be included.
+/// For prototyping, see [`Unkind`].
 ///
 /// # Example
 ///
@@ -40,10 +39,26 @@ pub trait Kind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static
 
 impl<U> Kind for U where U: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {}
 
-/// Adhoc kind.
+/// Adhoc [`Kind`].
 ///
-/// Unlike most kinds, this is not meant to be opaque and not programmatically describe the error.
-/// Its role is mostly for prototyping before one transitions to more formal kinds.
+/// Unlike most [`Kind`]s, this is meant to be opaque and not programmatically specify the status.
+/// It is only good for displaying a `str` to the user when prototyping before one transitions to more formal [`Kind`]s.
+///
+/// Note: This is the default [`Kind`] for [`Status`].
+///
+/// When transitioning to a more useful [`Kind`], it could be helpful to have an `enum` variant
+/// with an `Unkind`:
+/// ```
+/// #[derive(Copy, Clone, Debug, derive_more::Display)]
+/// enum ErrorKind {
+///   #[display(fmt = "Failed to read file")]
+///   Read,
+///   #[display(fmt = "Failed to parse")]
+///   Parse,
+///   #[display(fmt = "{}", "_0")]
+///   Other(status::Unkind),
+/// }
+/// ```
 #[derive(Copy, Clone, Debug)]
 pub struct Unkind {
     inner: &'static str,
