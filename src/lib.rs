@@ -19,7 +19,7 @@
 //! error that comes from a general, fixed collection.  Describing the exact problem and tailored
 //! remediation is the responsibility of the [`Context`] which is generally key-value pairs.
 //!
-//! [`Status`] grows with your application
+//! [`Status`] grows with your application:
 //!
 //! # Prototyping
 //!
@@ -81,7 +81,7 @@
 //! }
 //! ```
 //!
-//! And once you are done, might choose to remove `ErrorKind::Other` completely:
+//! And once you are done, you might choose to remove `ErrorKind::Other` completely:
 //!
 //! ```rust
 //! # use std::path::Path;
@@ -108,6 +108,14 @@
 //! #     Ok(())
 //! # }
 //! ```
+//!
+//! # FAQ
+//!
+//! ## Why `Status`?
+//!
+//! One man's error is another man's expected case.  For example, you might have a case where you
+//! need to silence some "errors" and move on.  So for an "error" crate that wanted to focus on the
+//! programmatic use-case, the typical synonyms for "error" were too strong.
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
