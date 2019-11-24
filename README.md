@@ -2,6 +2,7 @@
 
 > `Status`: An `Error` container for Rust.
 
+[![Build Status](https://travis-ci.org/epage/status.svg?branch=master)](https://travis-ci.org/epage/status)
 [![Crates Status](https://img.shields.io/crates/v/status.svg)](https://crates.io/crates/status)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)][Documentation]
 ![License](https://img.shields.io/crates/l/status.svg)
