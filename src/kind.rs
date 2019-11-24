@@ -39,3 +39,36 @@ pub trait Kind: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static
 }
 
 impl<U> Kind for U where U: Copy + Clone + fmt::Display + fmt::Debug + Send + Sync + 'static {}
+
+/// Adhoc kind.
+///
+/// Unlike most kinds, this is not meant to be opaque and not programmatically describe the error.
+/// Its role is mostly for prototyping before one transitions to more formal kinds.
+#[derive(Copy, Clone, Debug)]
+pub struct Unkind {
+    inner: &'static str,
+}
+
+impl From<&'static str> for Unkind {
+    fn from(s: &'static str) -> Self {
+        Self { inner: s }
+    }
+}
+
+impl fmt::Display for Unkind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", self.inner)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use static_assertions::*;
+
+    #[test]
+    fn unkind() {
+        assert_impl_all!(Unkind: Kind);
+    }
+}

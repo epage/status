@@ -50,13 +50,15 @@ impl<K: Kind, C: Context> error::Error for InternalStatus<K, C> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::NoContext;
+    use crate::Unkind;
 
     use static_assertions::*;
 
     #[test]
     fn internal() {
-        assert_impl_all!(InternalStatus<&'static str, crate::NoContext>: fmt::Debug, fmt::Display, error::Error);
+        assert_impl_all!(InternalStatus<Unkind, NoContext>: fmt::Debug, fmt::Display, error::Error);
         #[cfg(feature = "send_sync")]
-        assert_impl_all!(InternalStatus<&'static str, crate::NoContext>: Send, Sync);
+        assert_impl_all!(InternalStatus<Unkind, NoContext>: Send, Sync);
     }
 }

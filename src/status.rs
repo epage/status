@@ -8,6 +8,7 @@ use crate::Kind;
 use crate::NoContext;
 use crate::StdError;
 use crate::StrictError;
+use crate::Unkind;
 
 /// Error container.
 ///
@@ -38,7 +39,7 @@ use crate::StrictError;
 /// }
 /// ```
 #[derive(Debug)]
-pub struct Status<K: Kind = &'static str, C: Context = NoContext> {
+pub struct Status<K: Kind = Unkind, C: Context = NoContext> {
     pub(crate) inner: Box<StatusDetails<K, C>>,
 }
 
