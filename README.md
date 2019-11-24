@@ -26,7 +26,7 @@ cookie-cutter approach to error messages.  The `Kind` serves as a static descrip
 error that comes from a general, fixed collection.  Describing the exact problem and tailored
 remediation is the responsibility of the `Context` which is generally key-value pairs.
 
-For more, see [docs.rs/status](Documentation).
+For more, see [docs.rs/status][Documentation].
 
 ## License
 
