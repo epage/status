@@ -3,21 +3,22 @@
 //! An `Error` container lowers the overhead for reporting the status via `Result<_, E>`.
 //!
 //! Unlike the error-wrapping pattern found in `cargo` and generalized in `anyhow`, the pattern
-//! implemented in [`Status`] comes from some proprietary C++ projects which try to address the
+//! implemented in [`Status`] comes from projects which try to address the
 //! following requirements:
 //! - Programmatically respond to both the [`Kind`] of status and the metadata, or [`Context`], of
 //!   the status.
 //! - Dealing with error-sites not knowing enough to describe the error but allowing the
-//!   [`Context`] to be built gradually when unwinding and a function has relevant information to
+//!   [`Context`] to be built gradually when unwinding where there is relevant information to
 //!   add.
 //! - Localizing the rendered message.
 //! - Allowing an application to make some phrasing native to its UX.
 //! - Preserving all of this while passing through FFI, IPC, and RPC.
 //!
-//! These requirements are addressed by trading off some usability due to having a more
-//! cookie-cutter approach to error messages.  The [`Kind`] serves as a static description of the
+//! These requirements are addressed by trading off the usability of per-site custom messages with
+//! messages built up from common building blocks.  The [`Kind`] serves as a static description of the
 //! error that comes from a general, fixed collection.  Describing the exact problem and tailored
-//! remediation is the responsibility of the [`Context`] which is generally key-value pairs.
+//! remediation is the responsibility of the [`Context`] which maps general, fixed keys with
+//! runtime-generated data.
 //!
 //! [`Status`] grows with your application:
 //!
@@ -25,7 +26,7 @@
 //!
 //! When prototyping, you tend to focus on your proof of concept and not worry about handling all
 //! corner cases or providing a clean API.  `status` helps you with this by providing an ad-hoc
-//! [`Kind`], [`Unkind`].
+//! [`Kind`], [`Unkind`], and an [`AdhocContext`].
 //!
 //! ```rust
 //! # use std::path::Path;
@@ -59,8 +60,6 @@
 //! # use std::path::Path;
 //! #[derive(Copy, Clone, Debug, derive_more::Display, derive_more::From)]
 //! enum ErrorKind {
-//!   #[display(fmt = "Failed to read file")]
-//!   Read,
 //!   #[display(fmt = "Failed to parse")]
 //!   Parse,
 //!   #[display(fmt = "{}", "_0")]
@@ -101,7 +100,7 @@
 //! # fn read_file(path: &Path) -> Result<String, Status> {
 //! #     std::fs::read_to_string(path)
 //! #         .map_err(|e| {
-//! #             Status::new(ErrorKind::Read).with_internal(e)
+//!             Status::new(ErrorKind::Read).with_internal(e)
 //! #         })
 //! # }
 //! #
@@ -112,8 +111,6 @@
 //! # }
 //! ```
 //!
-//! # Prototyping
-//!
 //! The same progressions happens with [`Context`], from [`AdhocContext`] to hand-written
 //! [`Context`].
 //!
@@ -121,9 +118,9 @@
 //!
 //! ## Why `Status`?
 //!
-//! One man's error is another man's expected case.  For example, you might have a case where you
-//! need to silence some "errors" and move on.  So for an "error" crate that wanted to focus on the
-//! programmatic use-case, the typical synonyms for "error" were too strong.
+//! For an "error" crate that wanted to focus on the programmatic use-case, the typical synonyms for
+//! "error" were too strong  because one man's error is another man's expected case.  For example,
+//! you might have a case where you need to silence some "errors" and move on.
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
