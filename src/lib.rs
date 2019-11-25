@@ -57,14 +57,15 @@
 //!
 //! ```rust
 //! # use std::path::Path;
-//! #[derive(Copy, Clone, Debug, derive_more::Display)]
+//! #[derive(Copy, Clone, Debug, derive_more::Display, derive_more::From)]
 //! enum ErrorKind {
 //!   #[display(fmt = "Failed to read file")]
 //!   Read,
 //!   #[display(fmt = "Failed to parse")]
 //!   Parse,
 //!   #[display(fmt = "{}", "_0")]
-//!   Other(status::Unkind),
+//!   #[doc(hidden)]
+//!   __Other(&'static str),
 //! }
 //! type Status = status::Status<ErrorKind>;
 //! type Result<T, E = Status> = std::result::Result<T, E>;
@@ -72,7 +73,7 @@
 //! fn read_file(path: &Path) -> Result<String, Status> {
 //!     std::fs::read_to_string(path)
 //!         .map_err(|e| {
-//!             Status::new(ErrorKind::Read).with_internal(e)
+//!             Status::new("Failed to read file").with_internal(e)
 //!         })
 //! }
 //!
@@ -83,7 +84,7 @@
 //! }
 //! ```
 //!
-//! And once you are done, you might choose to remove `ErrorKind::Other` completely:
+//! And once you are done, you might choose to remove `ErrorKind::__Other` completely:
 //!
 //! ```rust
 //! # use std::path::Path;
@@ -110,6 +111,11 @@
 //! #     Ok(())
 //! # }
 //! ```
+//!
+//! # Prototyping
+//!
+//! The same progressions happens with [`Context`], from [`AdhocContext`] to hand-written
+//! [`Context`].
 //!
 //! # FAQ
 //!
