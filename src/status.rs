@@ -1,11 +1,11 @@
 use std::error;
 use std::fmt;
 
+use crate::AdhocContext;
 use crate::Chain;
 use crate::Context;
 use crate::InternalStatus;
 use crate::Kind;
-use crate::NoContext;
 use crate::StdError;
 use crate::StrictError;
 use crate::Unkind;
@@ -39,7 +39,7 @@ use crate::Unkind;
 /// }
 /// ```
 #[derive(Debug)]
-pub struct Status<K: Kind = Unkind, C: Context = NoContext> {
+pub struct Status<K: Kind = Unkind, C: Context = AdhocContext> {
     pub(crate) inner: Box<StatusDetails<K, C>>,
 }
 
@@ -109,6 +109,23 @@ impl<K: Kind, C: Context> Status<K, C> {
     {
         self.inner.source = Source::Private(Box::new(error));
         self
+    }
+
+    /// Extend the [`Context`].
+    pub fn context_with<F>(mut self, context: F) -> Self
+    where
+        F: Fn(C) -> C,
+    {
+        let mut data: C = Default::default();
+        std::mem::swap(&mut data, &mut self.inner.data);
+        let mut data = context(data);
+        std::mem::swap(&mut data, &mut self.inner.data);
+        self
+    }
+
+    /// Access the [`Context`] for programmatic usage.
+    pub fn context(&self) -> &C {
+        &self.inner.data
     }
 
     /// Programmatic identifier for which error occurred.

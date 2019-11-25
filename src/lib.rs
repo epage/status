@@ -35,7 +35,9 @@
 //! fn read_file(path: &Path) -> Result<String> {
 //!     std::fs::read_to_string(path)
 //!         .map_err(|e| {
-//!             Status::new("Failed to read file").with_internal(e)
+//!             Status::new("Failed to read file")
+//!                 .with_internal(e)
+//!                 .context_with(|c| c.insert("Expected value", 5))
 //!         })
 //! }
 //!
@@ -124,6 +126,7 @@ mod macros;
 
 mod chain;
 mod context;
+mod ext;
 mod internal;
 mod kind;
 mod status;
@@ -134,6 +137,7 @@ compile_error!("no_std support is not implemented yet");
 
 pub use crate::chain::*;
 pub use crate::context::*;
+pub use crate::ext::*;
 pub use crate::internal::*;
 pub use crate::kind::*;
 pub use crate::status::*;
