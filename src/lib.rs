@@ -12,7 +12,7 @@
 //!   add.
 //! - Localizing the rendered message.
 //! - Allowing an application to make some phrasing native to its UX.
-//! - Preserving all of this while passing through FFI, IPC, and RPC.
+//! - Preserving all of this while passing through FFI, IPC, and RPC (TODO [#1](https://github.com/epage/status/issues/1) [#2](https://github.com/epage/status/issues/2)).
 //!
 //! These requirements are addressed by trading off the usability of per-site custom messages with
 //! messages built up from common building blocks.  The [`Kind`] serves as a static description of the
