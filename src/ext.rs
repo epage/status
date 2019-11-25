@@ -2,7 +2,7 @@ use crate::Context;
 use crate::Kind;
 use crate::Status;
 
-/// Modify the [`Status`] inline to error handling.
+/// Modify the [`Status`] inline for error handling.
 pub trait ResultStatusExt<C, F>
 where
     C: Context,

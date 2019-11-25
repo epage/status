@@ -76,11 +76,11 @@
 //!         })
 //! }
 //!
-//! fn main() -> Result<(), status::TerminatingStatus<Status>> {
-//!     let content = read_file(Path::new("Cargo.toml"))?;
-//!     println!("{}", content);
-//!     Ok(())
-//! }
+//! # fn main() -> Result<(), status::TerminatingStatus<Status>> {
+//! #     let content = read_file(Path::new("Cargo.toml"))?;
+//! #     println!("{}", content);
+//! #     Ok(())
+//! # }
 //! ```
 //!
 //! And once you are done, you might choose to remove `ErrorKind::__Other` completely:
@@ -97,12 +97,12 @@
 //! # type Status = status::Status<ErrorKind>;
 //! # type Result<T, E = Status> = std::result::Result<T, E>;
 //! #
-//! # fn read_file(path: &Path) -> Result<String, Status> {
-//! #     std::fs::read_to_string(path)
-//! #         .map_err(|e| {
+//! fn read_file(path: &Path) -> Result<String, Status> {
+//!     std::fs::read_to_string(path)
+//!         .map_err(|e| {
 //!             Status::new(ErrorKind::Read).with_internal(e)
-//! #         })
-//! # }
+//!         })
+//! }
 //! #
 //! # fn main() -> Result<(), status::TerminatingStatus<Status>> {
 //! #     let content = read_file(Path::new("Cargo.toml"))?;
