@@ -49,7 +49,7 @@
 //! }
 //! ```
 //!
-//! # Hardening code
+//! # Maturing the code
 //!
 //! After prototyping, you probably want to start handling all the corner cases and have a more
 //! strictly defined API.  You can do this by using an `enum` for your [`Kind`].  As you play
@@ -121,6 +121,22 @@
 //! For an "error" crate that wanted to focus on the programmatic use-case, the typical synonyms for
 //! "error" were too strong  because one man's error is another man's expected case.  For example,
 //! you might have a case where you need to silence some "errors" and move on.
+//!
+//! ## When should my [`Kind`] be an `enum` or an error code?
+//!
+//! In the above examples, `enum`s were used when maturing the code but error codes still have a
+//! place.
+//!
+//! `enum`s:
+//! - Strictly typed
+//!
+//! Error codes:
+//! - FFI, IPC, and RPC between binaries with different iterations of the error codes.
+//! - Localizaton: An approach to localization is lookup tables. Keeping them separate from the
+//!   application allows updating them without recompiling.
+//! - Interoperating with an ecosystem standardized on an error code system (like `HRESULT`).
+//!
+//! When using error codes, be sure to wrap them in a newtype to avoid mixing meanings.
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
